@@ -282,6 +282,7 @@ impl TryFrom<PaneTypeFile> for PaneType {
             PaneTypeFile::Volume { kind } => PaneType::Volume {
                 kind: match kind {
                     VolumeTypeFile::Slider(cfg) => VolumeType::Slider(cfg.into_config()?),
+                    VolumeTypeFile::VerticalSlider(cfg) => VolumeType::VerticalSlider(cfg.into_config()?),
                 },
             },
             PaneTypeFile::Header => PaneType::Header,
@@ -1264,6 +1265,7 @@ impl Default for TabsFile {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum VolumeTypeFile {
     Slider(VolumeSliderConfigFile),
+    VerticalSlider(VolumeSliderConfigFile),
 }
 
 impl Default for VolumeTypeFile {
@@ -1275,6 +1277,7 @@ impl Default for VolumeTypeFile {
 #[derive(Debug, Clone, Hash, Eq, PartialEq, strum::Display, strum::EnumDiscriminants)]
 pub enum VolumeType {
     Slider(VolumeSliderConfig),
+    VerticalSlider(VolumeSliderConfig),
 }
 
 pub(crate) fn validate_tabs(layout: &SizedPaneOrSplit, tabs: &Tabs) -> Result<()> {

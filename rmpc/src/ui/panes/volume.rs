@@ -67,6 +67,40 @@ impl Pane for VolumePane {
                     frame.buffer_mut().set_string(area.x + i, area.y, c, style);
                 }
             }
+            VolumeType::VerticalSlider(config) => {
+                let symbols = &config.symbols;
+                let filled_len = (f64::from(area.height) * f64::from(*ctx.status.volume.value())
+                    / 100.0) as u16;
+                // dbg!(area.width);
+                // dbg!(filled_len);
+
+                for i in 0..area.height {
+                    let style = if i <= filled_len && filled_len > 0 {
+                        config.filled_style
+                    } else {
+                        config.track_style
+                    };
+
+                    let (c, style) = if let Some(sym) = &config.symbols.start
+                        && i == 0
+                    {
+                        (sym, style)
+                    } else if i < filled_len {
+                        (&symbols.filled, style)
+                    } else if let Some(sym) = &config.symbols.end
+                        && i == area.height - 1
+                    {
+                        (sym, style)
+                    } else if i == filled_len {
+                        (&symbols.thumb, config.thumb_style)
+                    } else {
+                        (&symbols.track, style)
+                    };
+
+                    frame.buffer_mut().set_string(area.x, area.y + i, c, style);
+                }
+
+            },
         }
 
         Ok(())
@@ -179,6 +213,19 @@ mod tests {
         }))
     }
 
+    fn vert_pane() -> VolumePane {
+        VolumePane::new(VolumeType::VerticalSlider(VolumeSliderConfig {
+            symbols: Symbols {
+                start: Some("♪".to_owned()),
+                filled: "█".to_owned(),
+                thumb: "●".to_owned(),
+                track: "─".to_owned(),
+                end: Some("♪".to_owned()),
+            },
+            ..Default::default()
+        }))
+    }
+
     #[rstest]
     fn volume_zero_is_correct(mut terminal: Terminal<TestBackend>, mut ctx: Ctx) {
         let mut pane = pane();
@@ -234,5 +281,24 @@ mod tests {
         assert_eq!(buf[(2, 0)].symbol(), "●");
         assert_eq!(buf[(3, 0)].symbol(), "─");
         assert_eq!(buf[(4, 0)].symbol(), "♪");
+    }
+
+    #[rstest]
+    fn vertical_volume_max_is_correct(mut terminal: Terminal<TestBackend>, mut ctx: Ctx) {
+        let mut pane = vert_pane();
+        ctx.status.volume = Volume::new(100);
+
+        let buf = terminal
+            .draw(|frame| {
+                pane.render(frame, Rect::new(0, 0, 5, 1), &ctx).unwrap();
+            })
+            .unwrap()
+            .buffer;
+
+        assert_eq!(buf[(0, 0)].symbol(), "♪");
+        assert_eq!(buf[(0, 1)].symbol(), "█");
+        assert_eq!(buf[(0, 2)].symbol(), "█");
+        assert_eq!(buf[(0, 3)].symbol(), "█");
+        assert_eq!(buf[(0, 4)].symbol(), "♪");
     }
 }
