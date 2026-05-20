@@ -68,11 +68,12 @@ impl Pane for VolumePane {
                 }
             }
             VolumeType::VerticalSlider(config) => {
+                if area.height < 1 || area.width < 1 {
+                    return Ok(());
+                }
                 let symbols = &config.symbols;
                 let filled_len = (f64::from(area.height) * f64::from(*ctx.status.volume.value())
                     / 100.0) as u16;
-                // dbg!(area.width);
-                // dbg!(filled_len);
 
                 for i in 0..area.height {
                     let style = if i <= filled_len && filled_len > 0 {
@@ -97,7 +98,7 @@ impl Pane for VolumePane {
                         (&symbols.track, style)
                     };
 
-                    frame.buffer_mut().set_string(area.x, area.y + i, c, style);
+                    frame.buffer_mut().set_string(area.x,  area.height - i * area.y, c, style);
                 }
 
             },
@@ -216,11 +217,11 @@ mod tests {
     fn vert_pane() -> VolumePane {
         VolumePane::new(VolumeType::VerticalSlider(VolumeSliderConfig {
             symbols: Symbols {
-                start: Some("♪".to_owned()),
+                start: Some("█".to_owned()),
                 filled: "█".to_owned(),
-                thumb: "●".to_owned(),
-                track: "─".to_owned(),
-                end: Some("♪".to_owned()),
+                thumb: "▲".to_owned(),
+                track: "█".to_owned(),
+                end: Some("█".to_owned()),
             },
             ..Default::default()
         }))
@@ -276,11 +277,33 @@ mod tests {
             .unwrap()
             .buffer;
 
+        dbg!(buf);
+
         assert_eq!(buf[(0, 0)].symbol(), "♪");
         assert_eq!(buf[(1, 0)].symbol(), "█");
         assert_eq!(buf[(2, 0)].symbol(), "●");
         assert_eq!(buf[(3, 0)].symbol(), "─");
         assert_eq!(buf[(4, 0)].symbol(), "♪");
+    }
+
+    #[rstest]
+    fn vertical_volume_half_is_correct(mut terminal: Terminal<TestBackend>, mut ctx: Ctx) {
+        let mut pane = vert_pane();
+        ctx.status.volume = Volume::new(50);
+
+        let buf = terminal
+            .draw(|frame| {
+                pane.render(frame, Rect::new(0, 0, 5, 1), &ctx).unwrap();
+            })
+            .unwrap()
+            .buffer;
+        dbg!(buf);
+
+        assert_eq!(buf[(0, 0)].symbol(), "█");
+        assert_eq!(buf[(0, 1)].symbol(), "█");
+        assert_eq!(buf[(0, 2)].symbol(), "▲");
+        assert_eq!(buf[(0, 3)].symbol(), "█");
+        assert_eq!(buf[(0, 4)].symbol(), "█");
     }
 
     #[rstest]
@@ -295,10 +318,10 @@ mod tests {
             .unwrap()
             .buffer;
 
-        assert_eq!(buf[(0, 0)].symbol(), "♪");
+        assert_eq!(buf[(0, 0)].symbol(), "█");
         assert_eq!(buf[(0, 1)].symbol(), "█");
         assert_eq!(buf[(0, 2)].symbol(), "█");
         assert_eq!(buf[(0, 3)].symbol(), "█");
-        assert_eq!(buf[(0, 4)].symbol(), "♪");
+        assert_eq!(buf[(0, 4)].symbol(), "█");
     }
 }

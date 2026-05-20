@@ -295,6 +295,7 @@ pub fn components() -> HashMap<String, PaneOrSplitFile> {
                             track_style: None,
                             filled_style: None,
                             thumb_style: None,
+                            direction: None,
                         }),
                     }),
                 },

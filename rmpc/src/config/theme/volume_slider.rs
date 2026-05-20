@@ -1,5 +1,5 @@
 use anyhow::Result;
-use ratatui::style::{Color, Style};
+use ratatui::{style::{Color, Style}};
 use serde::{Deserialize, Serialize};
 
 use super::{StyleFile, style::ToConfigOr};
@@ -22,6 +22,7 @@ pub struct VolumeSliderConfig {
     /// Style for the empty part of the volume slider
     /// Falls back to gray for foreground and default color for background
     pub track_style: Style,
+    pub direction: Option<SliderDirection>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -31,6 +32,7 @@ pub struct VolumeSliderConfigFile {
     pub track_style: Option<StyleFile>,
     pub filled_style: Option<StyleFile>,
     pub thumb_style: Option<StyleFile>,
+    pub direction: Option<SliderDirection>,
 }
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Symbols {
@@ -53,6 +55,33 @@ impl Default for Symbols {
     }
 }
 
+pub trait VerticalConfigFile {
+    fn  vertical() -> VolumeSliderConfigFile;
+}
+
+pub trait VerticalSymbols {
+    fn  vertical() -> Symbols;
+}
+
+impl VerticalSymbols for Symbols {
+    fn vertical() -> Symbols
+    {
+        Symbols {
+            start: Some("♪".to_owned()),
+            filled: "─".to_owned(),
+            thumb: "●".to_owned(),
+            track: "─".to_owned(),
+            end: Some("♫".to_owned()),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
+pub enum SliderDirection {
+    Vertical,
+    Horizontal,
+}
+
 impl Default for VolumeSliderConfigFile {
     fn default() -> Self {
         Self {
@@ -72,6 +101,32 @@ impl Default for VolumeSliderConfigFile {
                 bg: None,
                 modifiers: None,
             }),
+            direction: None,
+        }
+    }
+}
+
+impl VerticalConfigFile for VolumeSliderConfigFile {
+    
+    fn vertical() -> Self {
+        Self {
+            symbols: Symbols::vertical(),
+            filled_style: Some(StyleFile {
+                fg: Some("blue".to_string()),
+                bg: None,
+                modifiers: None,
+            }),
+            thumb_style: Some(StyleFile {
+                fg: Some("blue".to_string()),
+                bg: None,
+                modifiers: None,
+            }),
+            track_style: Some(StyleFile {
+                fg: Some("dark_gray".to_string()),
+                bg: None,
+                modifiers: None,
+            }),
+            direction: None,
         }
     }
 }
@@ -83,6 +138,7 @@ impl VolumeSliderConfigFile {
             filled_style: self.filled_style.to_config_or(Some(Color::Blue), None)?,
             thumb_style: self.thumb_style.to_config_or(Some(Color::Blue), None)?,
             track_style: self.track_style.to_config_or(Some(Color::DarkGray), None)?,
+            direction: self.direction,
         })
     }
 }

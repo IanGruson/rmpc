@@ -142,7 +142,7 @@
                 pane: Pane(Tabs),
                 borders: "RIGHT | LEFT | BOTTOM",
                 border_symbols: Rounded,
-                size: "1",
+                size: "6",
             ),
             (
                 pane: Pane(TabContent),
@@ -187,9 +187,9 @@
             ], align: Center, scroll_speed: 1
         )),
         "volume": Split(
-            direction: Vertical,
+            direction: Horizontal,
             panes: [
-                (size: "100%", pane: Split(direction: Vertical, panes: [(size: "8", pane: Pane(Volume(kind: VerticalSlider(symbols: (filled: "─", thumb: "●", track: "─")))))])),
+                (size: "100%", direction: Vertical, pane: Pane(Volume(kind: VerticalSlider(symbols: (filled: "█", thumb: "▲", track: "█"))))),
             ]
         ),
         "elapsed_and_bitrate": Pane(Property(
@@ -288,7 +288,7 @@
         "header_right": Split(
             direction: Vertical,
             panes: [
-                (size: "1", pane: Component("volume")),
+                (size: "6", pane: Component("volume")),
                 (size: "1", pane: Component("states")),
             ]
         ),
